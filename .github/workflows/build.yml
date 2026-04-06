@@ -9,7 +9,9 @@ permissions:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_NAME: lede
-  WORKDIR: /mnt/lede
+  WORKDIR: ~/lede
+  CCACHE_DIR: ~/ccache_lede
+  CCACHE_MAXSIZE: 10G
 
 jobs:
   build:
@@ -47,11 +49,6 @@ jobs:
         run: |
           df -h
 
-      - name: Prepare workspace
-        run: |
-          sudo mkdir -p /mnt
-          sudo chown $USER:$USER /mnt
-
       - name: Clone source
         run: |
           git clone --depth=1 $REPO_URL $WORKDIR
@@ -85,6 +82,9 @@ jobs:
           echo "last check disk space"
           df -h
           echo "======================="
+          export PATH="/usr/lib/ccache:$PATH"
+          export CCACHE_DIR=$CCACHE_DIR
+          ccache -M $CCACHE_MAXSIZE
           make -j$(nproc) || make -j1 V=s
           echo "======================="
           echo "Space usage:"
